@@ -1,0 +1,13 @@
+# Ignored files
+.settings
+Debug
+Release
+*.sln
+*.sdf
+*.opensdf
+*.props
+*.suo
+*.vcxproj
+*.filters
+.project
+.cproject

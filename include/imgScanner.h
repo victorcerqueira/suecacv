@@ -5,22 +5,22 @@
 
 #include "card.h"
 
-
 class ImgScanner {
 	private:
-		Mat* frame;
+		cv::Mat* frame;
 		vector<Card> cards;
-		static Mat applyMask(Mat frame);
-		static vector<vector<Point> > findContours(Mat mask);
-		static bool greaterArea (vector<Point> i,vector<Point> j);
+		static cv::Mat applyMask(cv::Mat frame);
+		static vector<vector<cv::Point> > findContours(cv::Mat mask);
+		static bool greaterArea (vector<cv::Point> i,vector<cv::Point> j);
 		static bool sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center);
-		static vector<Point2f> getCorners(vector<Point> countour);
+		static vector<cv::Point2f> getCorners(vector<cv::Point> countour);
 		void setCardsPos();
 
 	public:
-		ImgScanner(Mat* frame);
+		ImgScanner(cv::Mat* frame);
 		void detectCards();
 		void outlineCards();
+		static Card detectSingleCard(cv::Mat* f);
 };
 
 #endif

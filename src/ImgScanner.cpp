@@ -1,30 +1,51 @@
 #include "imgScanner.h"
 #include "opencv2\opencv.hpp"
 
-using namespace cv;
-
-ImgScanner::ImgScanner(Mat* frame){
+ImgScanner::ImgScanner(cv::Mat* frame){
 	this->frame = frame;
 	cards = vector<Card>();
+}
+
+Card ImgScanner::detectSingleCard(cv::Mat* f){
+	Card c = Card(f);
+
+	cv::Mat mask = applyMask(*f);
+
+	vector<vector<cv::Point> > contours = findContours(mask);
+
+	if(!contours.empty()){
+
+		vector<cv::Point2f> corners = getCorners(contours[0]);
+		
+		if(corners.size() != 0){
+			cv::Point2f center = corners[corners.size()-1];
+			corners.pop_back();
+
+			c.setPos(corners);
+			c.setCenter(center);
+			c.outline();
+		}
+	}
+	return c;
 }
 
 void ImgScanner::detectCards(){
 
 	cards.clear();
 
-	Mat mask = applyMask(*frame);
+	cv::Mat mask = applyMask(*frame);
 
-	vector<vector<Point> > contours = findContours(mask);
+	vector<vector<cv::Point> > contours = findContours(mask);
 
 	int size = min(NUM_CARDS,(int)contours.size());
 
 	for(int i=0; i<size; i++){
 		Card c = Card(frame);
 
-		vector<Point2f> corners = getCorners(contours[i]);
+		vector<cv::Point2f> corners = getCorners(contours[i]);
 		
 		if(corners.size() != 0){
-			Point2f center = corners[corners.size()-1];
+			cv::Point2f center = corners[corners.size()-1];
 			corners.pop_back();
 
 			c.setPos(corners);
@@ -33,22 +54,23 @@ void ImgScanner::detectCards(){
 		}
 	}
 	setCardsPos();
+	
 }
 
-Mat ImgScanner::applyMask(Mat frame){
-	Mat mask;
-	cvtColor(frame, mask, COLOR_BGR2GRAY);
+cv::Mat ImgScanner::applyMask(cv::Mat frame){
+	cv::Mat mask;
+	cvtColor(frame, mask, cv::COLOR_BGR2GRAY);
 	threshold( mask, mask, 120, 255,CV_THRESH_BINARY);
 	return mask;
 }
 
-bool ImgScanner::greaterArea (vector<Point> i,vector<Point> j) {
+bool ImgScanner::greaterArea (vector<cv::Point> i,vector<cv::Point> j) {
 	return (contourArea(i)<contourArea(j));
 }
 
-vector<vector<Point> > ImgScanner::findContours(Mat mask){
-	static vector<vector<Point> > contours;
-    static vector<Vec4i> hierarchy;
+vector<vector<cv::Point> > ImgScanner::findContours(cv::Mat mask){
+	static vector<vector<cv::Point> > contours;
+    static vector<cv::Vec4i> hierarchy;
 
 	cv::findContours( mask, contours, hierarchy,
         CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
@@ -59,9 +81,9 @@ vector<vector<Point> > ImgScanner::findContours(Mat mask){
 	return contours;
 }
 
-bool ImgScanner::sortCorners(vector<Point2f>& corners, Point2f center){
-    vector<Point2f> top = vector<Point2f>();
-	vector<Point2f> bot = vector<Point2f>();
+bool ImgScanner::sortCorners(vector<cv::Point2f>& corners, cv::Point2f center){
+    vector<cv::Point2f> top = vector<cv::Point2f>();
+	vector<cv::Point2f> bot = vector<cv::Point2f>();
 
     for (int i = 0; i < corners.size(); i++)
     {
@@ -79,7 +101,7 @@ bool ImgScanner::sortCorners(vector<Point2f>& corners, Point2f center){
     cv::Point2f br = bot[0].x > bot[1].x ? bot[0] : bot[1];
 
 	if(norm(tr-tl) > norm(bl - tl)){ //if the card is horizontal, flip it
-		Point2f temp;
+		cv::Point2f temp;
 		temp = tl;
 		tl = tr;
 		tr = br;
@@ -96,8 +118,8 @@ bool ImgScanner::sortCorners(vector<Point2f>& corners, Point2f center){
 	return true;
 }
 
-vector<Point2f> ImgScanner::getCorners(vector<Point> countour){
-	vector<Point2f> approx = vector<Point2f>();
+vector<cv::Point2f> ImgScanner::getCorners(vector<cv::Point> countour){
+	vector<cv::Point2f> approx = vector<cv::Point2f>();
 	double d=0;
 	do
 	{
@@ -106,7 +128,7 @@ vector<Point2f> ImgScanner::getCorners(vector<Point> countour){
 	}
 	while (approx.size()>4);
 
-	if(approx.size() != 4) return vector<Point2f>();
+	if(approx.size() != 4) return vector<cv::Point2f>();
 
 	cv::Point2f center(0,0);
 	for (int i = 0; i < approx.size(); i++)
@@ -119,7 +141,7 @@ vector<Point2f> ImgScanner::getCorners(vector<Point> countour){
 		return approx;
 	}
 	else
-		return vector<Point2f>();
+		return vector<cv::Point2f>();
 }
 
 void ImgScanner::outlineCards(){
@@ -129,10 +151,10 @@ void ImgScanner::outlineCards(){
 }
 
 void ImgScanner::setCardsPos(){
-	Point2f north = Point2f(frame->cols/2,0);
-	Point2f south = Point2f(frame->cols/2,frame->rows);
-	Point2f east = Point2f(frame->cols/2,frame->rows/2);
-	Point2f west = Point2f(0,frame->rows/2);
+	cv::Point2f north = cv::Point2f(frame->cols/2,0);
+	cv::Point2f south = cv::Point2f(frame->cols/2,frame->rows);
+	cv::Point2f east = cv::Point2f(frame->cols/2,frame->rows/2);
+	cv::Point2f west = cv::Point2f(0,frame->rows/2);
 
 	if(cards.size()<4) return;
 

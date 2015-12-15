@@ -1,16 +1,21 @@
 #include "card.h"
 
 
-Card::Card(Mat* frame){
+Card::Card(cv::Mat* frame){
 	this->frame = frame;
 	quadrant = -1;
+	cardImg = cv::Mat();
 }
 
-void Card::setPos(vector<Point2f> corners){
+bool Card::isImgSet(){
+	return cardImg.empty();
+}
+
+void Card::setPos(vector<cv::Point2f> corners){
 	this->corners = corners;
 
-	cardImg = Mat::zeros(300, 220, CV_8UC3);  //TODO default img size, solve this
-	vector<Point2f> quad_pts;
+	cardImg = cv::Mat::zeros(300, 220, CV_8UC3);  //TODO default img size, solve this
+	vector<cv::Point2f> quad_pts;
 	quad_pts.push_back(cv::Point2f(0, 0));
 	quad_pts.push_back(cv::Point2f(cardImg.cols, 0));
 	quad_pts.push_back(cv::Point2f(cardImg.cols, cardImg.rows));
@@ -21,12 +26,12 @@ void Card::setPos(vector<Point2f> corners){
 	cv::warpPerspective(*frame, cardImg, transmtx, cardImg.size());
 }
 
-vector<Point2f> Card::getCorners(){
+vector<cv::Point2f> Card::getCorners(){
 	return corners;
 }
 
 void Card::outline(){
-	Scalar green = Scalar(0,255,0);
+	cv::Scalar green = cv::Scalar(0,255,0);
 	line(*frame,corners[0],corners[1],green,1,8);
 	line(*frame,corners[1],corners[2],green,1,8);
 	line(*frame,corners[2],corners[3],green,1,8);
@@ -38,11 +43,11 @@ void Card::setQuadrant(int q){
 	quadrant = q;
 }
 
-void Card::setCenter(Point2f p){
+void Card::setCenter(cv::Point2f p){
 	center = p;
 }
 
-Point2f Card::getCenter(){
+cv::Point2f Card::getCenter(){
 	return center;
 }
 
@@ -55,5 +60,9 @@ void Card::printQuadrant(){
 	else if (quadrant == EAST) name = "EAST";
 	else if (quadrant == WEST) name = "WEST";
 
-	putText(*frame,name,center,FONT_HERSHEY_SIMPLEX,2,Scalar(255,0,0));
+	putText(*frame,name,center,cv::FONT_HERSHEY_SIMPLEX,2,cv::Scalar(255,0,0));
+}
+
+cv::Mat Card::getImg(){
+	return cardImg;
 }
